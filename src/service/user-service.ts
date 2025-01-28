@@ -1,6 +1,8 @@
+import { User } from "@prisma/client";
 import {
   RegisterUserRequest,
   toUserResponse,
+  LoginUserRequest,
   UserResponse,
 } from "../model/user-model";
 import { prismaClient } from "../settings/database";
@@ -30,5 +32,61 @@ export class UserService {
     });
 
     return toUserResponse(user);
+  }
+
+  static async login(request: LoginUserRequest): Promise<UserResponse> {
+    request = UserValidation.LOGIN.parse(request);
+
+    let user = await prismaClient.user.findUnique({
+      where: {
+        username: request.username,
+      },
+    });
+
+    if (!user)
+      throw new HTTPException(401, {
+        message: "username or password is invalid",
+      });
+
+    const checkPassword = await Bun.password.verify(
+      request.password,
+      user.password,
+      "bcrypt"
+    );
+
+    if (!checkPassword)
+      throw new HTTPException(401, {
+        message: "username or password is invalid",
+      });
+
+    user = await prismaClient.user.update({
+      where: {
+        username: request.username,
+      },
+      data: {
+        token: crypto.randomUUID(),
+      },
+    });
+
+    return toUserResponse(user);
+  }
+
+  static async get(token: string | undefined | null): Promise<User> {
+    const checkToken = UserValidation.TOKEN.safeParse(token);
+
+    if (checkToken.error)
+      throw new HTTPException(401, {
+        message: "unauthorized",
+      });
+
+    const user = await prismaClient.user.findFirst({
+      where: {
+        token: token,
+      },
+    });
+
+    if (!user) throw new HTTPException(401, { message: "unauthorized" });
+
+    return user;
   }
 }

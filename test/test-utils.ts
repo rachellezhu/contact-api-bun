@@ -1,8 +1,9 @@
+import { UserResponse } from "../src/model/user-model";
 import { prismaClient } from "../src/settings/database";
 
 export class UserTest {
   static async create() {
-    await prismaClient.user.create({
+    const user = await prismaClient.user.create({
       data: {
         username: "test",
         full_name: "test",
@@ -13,6 +14,8 @@ export class UserTest {
         token: "test",
       },
     });
+
+    return user;
   }
 
   static async delete() {

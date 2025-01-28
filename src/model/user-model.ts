@@ -12,9 +12,21 @@ export type UserResponse = {
   token?: string;
 };
 
+export type LoginUserRequest = {
+  username: string;
+  password: string;
+};
+
 export function toUserResponse(user: User): UserResponse {
+  if (!user.token)
+    return {
+      full_name: user.full_name,
+      username: user.username,
+    };
+
   return {
     full_name: user.full_name,
     username: user.username,
+    token: user.token,
   };
 }
