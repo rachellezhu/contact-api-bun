@@ -3,10 +3,12 @@ import {
   RegisterUserRequest,
   LoginUserRequest,
   toUserResponse,
+  UpdateUserRequest,
 } from "../model/user-model";
 import { UserService } from "../service/user-service";
 import { ApplicationVariables } from "../model/app-model";
 import { User } from "@prisma/client";
+import { logger } from "../settings/logging";
 
 export const userController = new Hono<{ Variables: ApplicationVariables }>();
 
@@ -39,7 +41,19 @@ userController.use(async (c, next) => {
 
 userController.get("/api/users/current", async (c) => {
   const user = c.get("user") as User;
+
   return c.json({
     data: toUserResponse(user),
+  });
+});
+
+userController.patch("/api/users/current", async (c) => {
+  const user = c.get("user") as User;
+  const request = (await c.req.json()) as UpdateUserRequest;
+  request.token = user.token!;
+  const response = await UserService.update(request);
+
+  return c.json({
+    data: response,
   });
 });

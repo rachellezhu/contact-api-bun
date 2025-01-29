@@ -21,4 +21,14 @@ export class UserTest {
   static async delete() {
     await prismaClient.user.deleteMany({});
   }
+
+  static async get(username: string) {
+    const user = await prismaClient.user.findUnique({
+      where: {
+        username: username,
+      },
+    });
+
+    return user;
+  }
 }

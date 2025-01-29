@@ -17,6 +17,12 @@ export type LoginUserRequest = {
   password: string;
 };
 
+export type UpdateUserRequest = {
+  full_name?: string;
+  password?: string;
+  token: string;
+};
+
 export function toUserResponse(user: User): UserResponse {
   if (!user.token)
     return {

@@ -4,10 +4,13 @@ import {
   toUserResponse,
   LoginUserRequest,
   UserResponse,
+  UpdateUserRequest,
 } from "../model/user-model";
 import { prismaClient } from "../settings/database";
 import { UserValidation } from "../validation/user-validation";
 import { HTTPException } from "hono/http-exception";
+import { logger } from "../settings/logging";
+import { password } from "bun";
 
 export class UserService {
   static async register(request: RegisterUserRequest): Promise<UserResponse> {
@@ -88,5 +91,38 @@ export class UserService {
     if (!user) throw new HTTPException(401, { message: "unauthorized" });
 
     return user;
+  }
+
+  static async update(request: UpdateUserRequest): Promise<UserResponse> {
+    const checkUser = await this.get(request.token);
+
+    request = await UserValidation.UPDATE.parse(request);
+
+    let query = {};
+
+    if (!request.full_name && !request.password)
+      throw new HTTPException(400, {
+        message: "full_name or password must be filled",
+      });
+
+    if (request.full_name) query = { ...query, full_name: request.full_name };
+    if (request.password)
+      query = {
+        ...query,
+        password: await password.hash(request.password, {
+          algorithm: "bcrypt",
+          cost: 10,
+        }),
+      };
+
+    const user = await prismaClient.user.update({
+      where: {
+        username: checkUser.username,
+        token: checkUser.token,
+      },
+      data: query,
+    });
+
+    return toUserResponse(user);
   }
 }
