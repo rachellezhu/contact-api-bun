@@ -279,3 +279,58 @@ describe("PATCH /api/users/current", function () {
     expect(body.errors).toBeDefined();
   });
 });
+
+describe("DELETE /api/users/current", function () {
+  beforeEach(async function () {
+    await UserTest.create();
+  });
+
+  afterEach(async function () {
+    await UserTest.delete();
+  });
+
+  it("Should be able to logout", async function () {
+    const response = await app.request("/api/users/current", {
+      method: "delete",
+      headers: {
+        Authorization: "test",
+      },
+    });
+
+    const body = await response.json();
+    logger.debug(body);
+
+    const user = await UserTest.get("test");
+
+    expect(response.status).toBe(200);
+    expect(body.data).toBe(true);
+    expect(user!.token).toBeNull();
+  });
+
+  it("Should reject user logout if Authorization header is invalid", async function () {
+    const response = await app.request("/api/users/current", {
+      method: "delete",
+      headers: {
+        Authorization: "invalid_test",
+      },
+    });
+
+    const body = await response.json();
+    logger.debug(body);
+
+    expect(response.status).toBe(401);
+    expect(body.errors).toBeDefined();
+  });
+
+  it("Should reject user logout if there is no Authorization header", async function () {
+    const response = await app.request("/api/users/current", {
+      method: "delete",
+    });
+
+    const body = await response.json();
+    logger.debug(body);
+
+    expect(response.status).toBe(401);
+    expect(body.errors).toBeDefined();
+  });
+});

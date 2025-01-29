@@ -125,4 +125,25 @@ export class UserService {
 
     return toUserResponse(user);
   }
+
+  static async logout(token: string | undefined | null): Promise<true> {
+    const checkUser = this.get(token);
+
+    const logout = await prismaClient.user.update({
+      where: {
+        username: (await checkUser).username,
+        token: (await checkUser).token,
+      },
+      data: {
+        token: null,
+      },
+    });
+
+    if (!logout)
+      throw new HTTPException(400, {
+        message: "Could not logout",
+      });
+
+    return true;
+  }
 }
