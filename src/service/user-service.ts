@@ -9,7 +9,6 @@ import {
 import { prismaClient } from "../settings/database";
 import { UserValidation } from "../validation/user-validation";
 import { HTTPException } from "hono/http-exception";
-import { logger } from "../settings/logging";
 import { password } from "bun";
 
 export class UserService {

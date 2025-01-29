@@ -1,5 +1,5 @@
-import { password } from "bun";
 import { z, ZodType } from "zod";
+import { PASSWORD_REGEX } from "../settings/constant";
 
 export class UserValidation {
   static readonly REGISTER: ZodType = z.object({
@@ -11,7 +11,7 @@ export class UserValidation {
       .max(100)
       .refine(
         (val) => {
-          return val.match(/^(?=.*[a-zA-Z])(?=.*[0-9])/);
+          return val.match(PASSWORD_REGEX);
         },
         { message: "password must contain alphanumeric" }
       ),
@@ -25,7 +25,7 @@ export class UserValidation {
       .max(100)
       .refine(
         (val) => {
-          return val.match(/^(?=.*[a-zA-Z])(?=.*[0-9])/);
+          return val.match(PASSWORD_REGEX);
         },
         { message: "username or password is invalid" }
       ),

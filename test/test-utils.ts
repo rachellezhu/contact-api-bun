@@ -1,4 +1,3 @@
-import { UserResponse } from "../src/model/user-model";
 import { prismaClient } from "../src/settings/database";
 
 export class UserTest {
@@ -19,6 +18,7 @@ export class UserTest {
   }
 
   static async delete() {
+    await ContactTest.delete();
     await prismaClient.user.deleteMany({});
   }
 
@@ -30,5 +30,25 @@ export class UserTest {
     });
 
     return user;
+  }
+}
+
+export class ContactTest {
+  static async create(username: string) {
+    const contact = await prismaClient.contact.create({
+      data: {
+        username: username,
+        first_name: "Rachelle",
+        last_name: "Zhu",
+        email: "test@test.test",
+        phone: "+696969696969",
+      },
+    });
+
+    return contact;
+  }
+
+  static async delete() {
+    await prismaClient.contact.deleteMany({});
   }
 }
