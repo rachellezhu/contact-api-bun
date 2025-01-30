@@ -44,3 +44,30 @@ contactController.put("/api/contacts/:idContact", async (c) => {
     data: response,
   });
 });
+
+contactController.delete("/api/contacts/:idContact", async (c) => {
+  const user = c.get("user") as User;
+  const idContact = Number(c.req.param("idContact"));
+  const response = await ContactService.delete(user, idContact);
+
+  return c.json({
+    data: response,
+  });
+});
+
+contactController.get("/api/contacts", async (c) => {
+  const user = c.get("user") as User;
+  const { name, email, phone, size, page } = c.req.query();
+  const response = await ContactService.search(user, {
+    name: name,
+    email: email,
+    phone: phone,
+    size: Number(size) || 10,
+    page: Number(page) || 1,
+  });
+
+  return c.json({
+    data: response.data,
+    page: response.page,
+  });
+});

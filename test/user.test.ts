@@ -215,7 +215,7 @@ describe("PATCH /api/users/current", function () {
         password: "updated1234",
       }),
     });
-    const user = await UserTest.get("test");
+    const user = await UserTest.get();
 
     const body = await response.json();
     logger.debug(body);
@@ -300,7 +300,7 @@ describe("DELETE /api/users/current", function () {
     const body = await response.json();
     logger.debug(body);
 
-    const user = await UserTest.get("test");
+    const user = await UserTest.get();
 
     expect(response.status).toBe(200);
     expect(body.data).toBe(true);

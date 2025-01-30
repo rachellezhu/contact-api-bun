@@ -75,7 +75,7 @@ describe("GET /api/contacts/{idContact}", async function () {
   });
 
   it("Should be able to get contact", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`api/contacts/${contact.id}`, {
       method: "get",
       headers: {
@@ -95,7 +95,7 @@ describe("GET /api/contacts/{idContact}", async function () {
   });
 
   it("Should not be able to get contact if contact id is invalid", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`/api/contacts/${contact.id + 100}`, {
       method: "get",
       headers: {
@@ -111,7 +111,7 @@ describe("GET /api/contacts/{idContact}", async function () {
   });
 
   it("Should not be able to get contact if there is no Authorization headers", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`/api/contacts/${contact.id + 100}`, {
       method: "get",
     });
@@ -124,7 +124,7 @@ describe("GET /api/contacts/{idContact}", async function () {
   });
 
   it("Should not be able to get contact if Authorization headers is invalid", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`/api/contacts/${contact.id + 100}`, {
       method: "get",
       headers: {
@@ -150,7 +150,7 @@ describe("PUT /api/contacts/{idContact}", async function () {
   });
 
   it("Should be able to update contact", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`/api/contacts/${contact.id}`, {
       method: "put",
       headers: { Authorization: "test" },
@@ -174,7 +174,7 @@ describe("PUT /api/contacts/{idContact}", async function () {
   });
 
   it("Should not be able to update contact if there is no data", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`/api/contacts/${contact.id}`, {
       method: "put",
       headers: { Authorization: "test" },
@@ -194,7 +194,7 @@ describe("PUT /api/contacts/{idContact}", async function () {
   });
 
   it("Should not be able to update contact if contact id is invalid", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`/api/contacts/${contact.id + 100}`, {
       method: "put",
       headers: { Authorization: "test" },
@@ -214,7 +214,7 @@ describe("PUT /api/contacts/{idContact}", async function () {
   });
 
   it("Should not be able to update contact if there is no Authorization header", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`/api/contacts/${contact.id + 100}`, {
       method: "put",
       body: JSON.stringify({
@@ -233,7 +233,7 @@ describe("PUT /api/contacts/{idContact}", async function () {
   });
 
   it("Should not be able to update contact if Authorization header is invalid", async function () {
-    const contact = await ContactTest.create("test");
+    const contact = await ContactTest.create();
     const response = await app.request(`/api/contacts/${contact.id + 100}`, {
       method: "put",
       headers: { Authorization: "invalid_token" },
@@ -250,5 +250,95 @@ describe("PUT /api/contacts/{idContact}", async function () {
 
     expect(response.status).toBe(401);
     expect(body.errors).toBeDefined();
+  });
+});
+
+describe("DELETE /api/contacts/{idContact}", async function () {
+  beforeEach(async function () {
+    await UserTest.create();
+  });
+
+  afterEach(async function () {
+    await UserTest.delete();
+  });
+
+  it("Should be able to delete contact", async function () {
+    const contact = await ContactTest.create();
+    const response = await app.request(`api/contacts/${contact.id}`, {
+      method: "delete",
+      headers: { Authorization: "test" },
+    });
+    const contacts = await ContactTest.get();
+
+    const body = await response.json();
+    logger.debug(body);
+    expect(response.status).toBe(200);
+    expect(body.data).toBeTrue();
+    expect(contacts.count).toBe(0);
+  });
+
+  it("Should bot be able to delete contact if contact id is invalid", async function () {
+    const contact = await ContactTest.create();
+    const response = await app.request(`/api/contacts/${contact.id + 100}`, {
+      method: "delete",
+      headers: { Authorization: "test" },
+    });
+    const contacts = await ContactTest.get();
+
+    const body = await response.json();
+    logger.debug(body);
+
+    expect(response.status).toBe(500);
+    expect(body.errors).toBeDefined();
+    expect(contacts.count).toBe(1);
+  });
+
+  it("Should not be able to delete contact if there is no Authorization headers", async function () {
+    const contact = await ContactTest.create();
+    const response = await app.request(`/api/contacts/${contact.id + 100}`, {
+      method: "delete",
+    });
+    const contacts = await ContactTest.get();
+
+    const body = await response.json();
+    logger.debug(body);
+
+    expect(response.status).toBe(401);
+    expect(body.errors).toBeDefined();
+    expect(contacts.count).toBe(1);
+  });
+});
+
+describe("GET /api/contacts?", async function () {
+  beforeEach(async function () {
+    await UserTest.create();
+  });
+
+  afterEach(async function () {
+    await UserTest.delete();
+  });
+
+  it("Should be able to search contacts", async function () {
+    const contact = await ContactTest.create();
+    const response = await app.request(
+      `/api/contacts?name=${contact.first_name}&email=${contact.email}&phone=${contact.phone}&size=5`,
+      {
+        method: "get",
+        headers: { Authorization: "test" },
+      }
+    );
+
+    const body = await response.json();
+    logger.debug(body);
+
+    expect(response.status).toBe(200);
+    expect(body.data.length).toBe(1);
+    expect(body.data[0].first_name).toBe(contact.first_name);
+    expect(body.data[0].last_name).toBe(contact.last_name);
+    expect(body.data[0].email).toBe(contact.email);
+    expect(body.data[0].phone).toBe(contact.phone);
+    expect(body.page.current_page).toBe(1);
+    expect(body.page.total_page).toBe(1);
+    expect(body.page.size).toBe(5);
   });
 });

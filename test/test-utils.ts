@@ -22,10 +22,10 @@ export class UserTest {
     await prismaClient.user.deleteMany({});
   }
 
-  static async get(username: string) {
+  static async get() {
     const user = await prismaClient.user.findUnique({
       where: {
-        username: username,
+        username: "test",
       },
     });
 
@@ -34,10 +34,10 @@ export class UserTest {
 }
 
 export class ContactTest {
-  static async create(username: string) {
+  static async create() {
     const contact = await prismaClient.contact.create({
       data: {
-        username: username,
+        username: "test",
         first_name: "Rachelle",
         last_name: "Zhu",
         email: "test@test.test",
@@ -50,5 +50,15 @@ export class ContactTest {
 
   static async delete() {
     await prismaClient.contact.deleteMany({});
+  }
+
+  static async get() {
+    const contacts = await prismaClient.contact.deleteMany({
+      where: {
+        username: "test",
+      },
+    });
+
+    return contacts;
   }
 }
