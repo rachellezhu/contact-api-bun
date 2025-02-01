@@ -7,6 +7,8 @@ import {
   UpdateContactRequest,
 } from "../model/contact-model";
 import { authMiddleware } from "../middleware/auth-middleware";
+import { logger } from "../settings/logging";
+import { DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE } from "../settings/constant";
 
 export const contactController = new Hono<{
   Variables: ApplicationVariables;
@@ -57,14 +59,21 @@ contactController.delete("/api/contacts/:idContact", async (c) => {
 
 contactController.get("/api/contacts", async (c) => {
   const user = c.get("user") as User;
-  const { name, email, phone, size, page } = c.req.query();
+  const name = c.req.query("name") || "";
+  const email = c.req.query("email") || "";
+  const phone = c.req.query("phone") || "";
+  const size = Number(c.req.query("size")) || DEFAULT_PAGE_SIZE;
+  const page = Number(c.req.query("page")) || DEFAULT_CURRENT_PAGE;
+
   const response = await ContactService.search(user, {
-    name: name,
-    email: email,
-    phone: phone,
-    size: Number(size) || 10,
-    page: Number(page) || 1,
+    name: decodeURIComponent(name),
+    email: decodeURIComponent(email),
+    phone: decodeURIComponent(phone),
+    size: size,
+    page: page,
   });
+
+  logger.debug(decodeURIComponent(phone));
 
   return c.json({
     data: response.data,

@@ -127,6 +127,9 @@ export class ContactService {
       }),
     ]);
 
+    if (!count)
+      throw new HTTPException(400, { message: "contact could not be found" });
+
     return {
       data: contacts.map((contact) => toContactResponse(contact)),
       page: {
