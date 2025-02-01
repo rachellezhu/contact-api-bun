@@ -12,11 +12,11 @@ import { DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE } from "../settings/constant";
 
 export const contactController = new Hono<{
   Variables: ApplicationVariables;
-}>();
+}>().basePath("/api/contacts");
 
 contactController.use(authMiddleware);
 
-contactController.post("/api/contacts", async (c) => {
+contactController.post("/", async (c) => {
   const user = c.get("user") as User;
   const request = (await c.req.json()) as CreateContactRequest;
   const response = await ContactService.create(user, request);
@@ -26,7 +26,7 @@ contactController.post("/api/contacts", async (c) => {
   });
 });
 
-contactController.get("/api/contacts/:idContact", async (c) => {
+contactController.get("/:idContact", async (c) => {
   const user = c.get("user") as User;
   const idContact = Number(c.req.param("idContact"));
   const response = await ContactService.get(user, idContact);
@@ -36,7 +36,7 @@ contactController.get("/api/contacts/:idContact", async (c) => {
   });
 });
 
-contactController.put("/api/contacts/:idContact", async (c) => {
+contactController.put("/:idContact", async (c) => {
   const user = c.get("user") as User;
   const idContact = Number(c.req.param("idContact"));
   const request = (await c.req.json()) as UpdateContactRequest;
@@ -47,7 +47,7 @@ contactController.put("/api/contacts/:idContact", async (c) => {
   });
 });
 
-contactController.delete("/api/contacts/:idContact", async (c) => {
+contactController.delete("/:idContact", async (c) => {
   const user = c.get("user") as User;
   const idContact = Number(c.req.param("idContact"));
   const response = await ContactService.delete(user, idContact);
@@ -57,7 +57,7 @@ contactController.delete("/api/contacts/:idContact", async (c) => {
   });
 });
 
-contactController.get("/api/contacts", async (c) => {
+contactController.get("/", async (c) => {
   const user = c.get("user") as User;
   const name = c.req.query("name") || "";
   const email = c.req.query("email") || "";

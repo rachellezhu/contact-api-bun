@@ -18,6 +18,7 @@ export class UserTest {
   }
 
   static async delete() {
+    await AddressTest.delete();
     await ContactTest.delete();
     await prismaClient.user.deleteMany({});
   }
@@ -141,5 +142,106 @@ export class ContactTest {
     });
 
     return contacts;
+  }
+}
+
+export class AddressTest {
+  static async create(contactId: number) {
+    await prismaClient.address.createMany({
+      data: [
+        {
+          contact_id: contactId,
+          city: "Test City",
+          province: "Test Province",
+          country: "Test Country",
+          postal_code: "69696",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 1 City",
+          province: "Test 1 Province",
+          country: "Test 1 Country",
+          postal_code: "11111",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 2 City",
+          province: "Test 2 Province",
+          country: "Test 2 Country",
+          postal_code: "22222",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 3 City",
+          province: "Test 3 Province",
+          country: "Test 3 Country",
+          postal_code: "33333",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 4 City",
+          province: "Test 4 Province",
+          country: "Test 4 Country",
+          postal_code: "44444",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 4 City",
+          province: "Test 4 Province",
+          country: "Test 4 Country",
+          postal_code: "44444",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 5 City",
+          province: "Test 5 Province",
+          country: "Test 5 Country",
+          postal_code: "55555",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 6 City",
+          province: "Test 6 Province",
+          country: "Test 6 Country",
+          postal_code: "66666",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 7 City",
+          province: "Test 7 Province",
+          country: "Test 7 Country",
+          postal_code: "77777",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 8 City",
+          province: "Test 8 Province",
+          country: "Test 8 Country",
+          postal_code: "88888",
+        },
+        {
+          contact_id: contactId,
+          city: "Test 9 City",
+          province: "Test 9 Province",
+          country: "Test 9 Country",
+          postal_code: "99999",
+        },
+        {
+          contact_id: contactId,
+          country: "United States",
+          postal_code: "12312",
+        },
+      ],
+    });
+  }
+
+  static async delete() {
+    await prismaClient.address.deleteMany({});
+  }
+
+  static async get() {
+    const addresses = await prismaClient.address.findMany({});
+
+    return addresses;
   }
 }

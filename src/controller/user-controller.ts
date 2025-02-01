@@ -10,9 +10,11 @@ import { ApplicationVariables } from "../model/app-model";
 import { User } from "@prisma/client";
 import { authMiddleware } from "../middleware/auth-middleware";
 
-export const userController = new Hono<{ Variables: ApplicationVariables }>();
+export const userController = new Hono<{
+  Variables: ApplicationVariables;
+}>().basePath("/api/users");
 
-userController.post("/api/users", async (c) => {
+userController.post("/", async (c) => {
   const request = (await c.req.json()) as RegisterUserRequest;
   const response = await UserService.register(request);
 
@@ -21,7 +23,7 @@ userController.post("/api/users", async (c) => {
   });
 });
 
-userController.post("/api/users/login", async (c) => {
+userController.post("/login", async (c) => {
   const request = (await c.req.json()) as LoginUserRequest;
   const response = await UserService.login(request);
 
@@ -32,7 +34,7 @@ userController.post("/api/users/login", async (c) => {
 
 userController.use(authMiddleware);
 
-userController.get("/api/users/current", async (c) => {
+userController.get("/current", async (c) => {
   const user = c.get("user") as User;
 
   return c.json({
@@ -40,7 +42,7 @@ userController.get("/api/users/current", async (c) => {
   });
 });
 
-userController.patch("/api/users/current", async (c) => {
+userController.patch("/current", async (c) => {
   const user = c.get("user") as User;
   const request = (await c.req.json()) as UpdateUserRequest;
   request.token = user.token!;
@@ -51,7 +53,7 @@ userController.patch("/api/users/current", async (c) => {
   });
 });
 
-userController.delete("/api/users/current", async (c) => {
+userController.delete("/current", async (c) => {
   const user = c.get("user") as User;
   const response = await UserService.logout(user.token);
 
