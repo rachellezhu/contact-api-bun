@@ -17,13 +17,13 @@ export class ContactService {
   ): Promise<ContactResponse> {
     request = ContactValidation.CREATE.parse(request);
 
-    const query = {
+    const data = {
       ...request,
       username: user.username,
     };
 
     const contact = await prismaClient.contact.create({
-      data: query,
+      data,
     });
 
     if (!contact)
@@ -54,17 +54,16 @@ export class ContactService {
   ): Promise<ContactResponse> {
     request = ContactValidation.UPDATE.parse(request);
 
-    let query = {};
+    let data: Prisma.ContactUpdateInput = {};
 
-    if (request.first_name)
-      query = { ...query, first_name: request.first_name };
-    if (request.last_name) query = { ...query, last_name: request.last_name };
-    if (request.email) query = { ...query, email: request.email };
-    if (request.phone) query = { ...query, phone: request.phone };
+    if (request.first_name) data = { ...data, first_name: request.first_name };
+    if (request.last_name) data = { ...data, last_name: request.last_name };
+    if (request.email) data = { ...data, email: request.email };
+    if (request.phone) data = { ...data, phone: request.phone };
 
     const contact = await prismaClient.contact.update({
       where: { username: user.username, id: idContact },
-      data: query,
+      data: data,
     });
 
     if (!contact)
@@ -95,6 +94,9 @@ export class ContactService {
     page: { current_page: number; total_page: number; size: number };
   }> {
     let query: Prisma.ContactFindManyArgs["where"] = {};
+
+    if (!queryParams.size) queryParams.size = 10;
+    if (!queryParams.page) queryParams.page = 1;
 
     if (queryParams.name)
       query = {
@@ -127,7 +129,7 @@ export class ContactService {
       }),
     ]);
 
-    if (!count)
+    if (!count || !contacts.length)
       throw new HTTPException(400, { message: "contact could not be found" });
 
     return {

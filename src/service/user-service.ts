@@ -97,17 +97,17 @@ export class UserService {
 
     request = await UserValidation.UPDATE.parse(request);
 
-    let query = {};
+    let data = {};
 
     if (!request.full_name && !request.password)
       throw new HTTPException(400, {
         message: "full_name or password must be filled",
       });
 
-    if (request.full_name) query = { ...query, full_name: request.full_name };
+    if (request.full_name) data = { ...data, full_name: request.full_name };
     if (request.password)
-      query = {
-        ...query,
+      data = {
+        ...data,
         password: await password.hash(request.password, {
           algorithm: "bcrypt",
           cost: 10,
@@ -119,7 +119,7 @@ export class UserService {
         username: checkUser.username,
         token: checkUser.token,
       },
-      data: query,
+      data,
     });
 
     return toUserResponse(user);
