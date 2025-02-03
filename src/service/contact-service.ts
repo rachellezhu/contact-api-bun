@@ -2,6 +2,7 @@ import { Prisma, User } from "@prisma/client";
 import {
   ContactResponse,
   CreateContactRequest,
+  DeleteContactRequest,
   SearchContactRequest,
   toContactResponse,
   UpdateContactRequest,
@@ -47,11 +48,7 @@ export class ContactService {
     return toContactResponse(contact);
   }
 
-  static async update(
-    user: User,
-    request: UpdateContactRequest,
-    idContact: number
-  ): Promise<ContactResponse> {
+  static async update(request: UpdateContactRequest): Promise<ContactResponse> {
     request = ContactValidation.UPDATE.parse(request);
 
     let data: Prisma.ContactUpdateInput = {};
@@ -62,8 +59,8 @@ export class ContactService {
     if (request.phone) data = { ...data, phone: request.phone };
 
     const contact = await prismaClient.contact.update({
-      where: { username: user.username, id: idContact },
-      data: data,
+      where: { username: request.username, id: request.id },
+      data,
     });
 
     if (!contact)
@@ -72,11 +69,13 @@ export class ContactService {
     return toContactResponse(contact);
   }
 
-  static async delete(user: User, idContact: number): Promise<true> {
+  static async delete(request: DeleteContactRequest): Promise<true> {
+    request = ContactValidation.DELETE.parse(request);
+
     const contact = await prismaClient.contact.delete({
       where: {
-        username: user.username,
-        id: idContact,
+        username: request.username,
+        id: request.id,
       },
     });
 
@@ -95,8 +94,10 @@ export class ContactService {
   }> {
     let query: Prisma.ContactFindManyArgs["where"] = {};
 
-    if (!queryParams.size) queryParams.size = 10;
-    if (!queryParams.page) queryParams.page = 1;
+    queryParams = ContactValidation.SEARCH.parse(queryParams);
+
+    // if (!queryParams.size) queryParams.size = 10;
+    // if (!queryParams.page) queryParams.page = 1;
 
     if (queryParams.name)
       query = {

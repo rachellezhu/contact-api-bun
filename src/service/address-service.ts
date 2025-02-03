@@ -2,6 +2,9 @@ import { HTTPException } from "hono/http-exception";
 import {
   AddressResponse,
   CreateAddressRequest,
+  DeleteAddressRequest,
+  GetAddressRequest,
+  ListAddressRequest,
   toAddressResponse,
   UpdateAddressRequest,
 } from "../model/address-model";
@@ -21,12 +24,11 @@ export class AddressService {
     return toAddressResponse(address);
   }
 
-  static async get(
-    idContact: number,
-    idAddress: number
-  ): Promise<AddressResponse> {
+  static async get(request: GetAddressRequest): Promise<AddressResponse> {
+    request = AddressValidation.GET.parse(request);
+
     const address = await prismaClient.address.findFirst({
-      where: { id: idAddress, contact_id: idContact },
+      where: { id: request.id, contact_id: request.contact_id },
     });
 
     if (!address)
@@ -62,9 +64,11 @@ export class AddressService {
     return toAddressResponse(address);
   }
 
-  static async delete(idContact: number, idAddress: number): Promise<true> {
+  static async delete(request: DeleteAddressRequest): Promise<true> {
+    request = AddressValidation.DELETE.parse(request);
+
     const address = await prismaClient.address.delete({
-      where: { id: idAddress, contact_id: idContact },
+      where: { id: request.id, contact_id: request.contact_id },
     });
 
     if (!address)
@@ -73,21 +77,19 @@ export class AddressService {
     return true;
   }
 
-  static async list(
-    idContact: number,
-    page: number,
-    size: number
-  ): Promise<{
+  static async list(request: ListAddressRequest): Promise<{
     data: AddressResponse[];
     page: { current_page: number; total_page: number; size: number };
   }> {
+    request = AddressValidation.LIST.parse(request);
+
     const [addresses, count] = await prismaClient.$transaction([
       prismaClient.address.findMany({
-        skip: (page - 1) * size,
-        take: size,
-        where: { contact_id: idContact },
+        skip: (request.page - 1) * request.size,
+        take: request.size,
+        where: { contact_id: request.contact_id },
       }),
-      prismaClient.address.count({ where: { contact_id: idContact } }),
+      prismaClient.address.count({ where: { contact_id: request.contact_id } }),
     ]);
 
     if (!count || !addresses.length)
@@ -96,9 +98,9 @@ export class AddressService {
     return {
       data: addresses,
       page: {
-        current_page: page,
-        total_page: Math.ceil(count / size),
-        size: size,
+        current_page: request.page,
+        total_page: Math.ceil(count / request.size),
+        size: request.size,
       },
     };
   }

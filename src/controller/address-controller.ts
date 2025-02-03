@@ -4,6 +4,9 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { AddressService } from "../service/address-service";
 import {
   CreateAddressRequest,
+  DeleteAddressRequest,
+  GetAddressRequest,
+  ListAddressRequest,
   UpdateAddressRequest,
 } from "../model/address-model";
 import { DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE } from "../settings/constant";
@@ -26,7 +29,8 @@ addressController.post("/", async (c) => {
 addressController.get("/:idAddress", async (c) => {
   const idContact = Number(c.req.param("idContact"));
   const idAddress = Number(c.req.param("idAddress"));
-  const response = await AddressService.get(idContact, idAddress);
+  const request: GetAddressRequest = { id: idAddress, contact_id: idContact };
+  const response = await AddressService.get(request);
 
   return c.json({ data: response });
 });
@@ -45,7 +49,11 @@ addressController.put("/:idAddress", async (c) => {
 addressController.delete("/:idAddress", async (c) => {
   const idContact = Number(c.req.param("idContact"));
   const idAddress = Number(c.req.param("idAddress"));
-  const response = await AddressService.delete(idContact, idAddress);
+  const request: DeleteAddressRequest = {
+    id: idAddress,
+    contact_id: idContact,
+  };
+  const response = await AddressService.delete(request);
 
   return c.json({
     data: response,
@@ -56,7 +64,8 @@ addressController.get("/", async (c) => {
   const idContact = Number(c.req.param("idContact"));
   const size = Number(c.req.query("size")) || DEFAULT_PAGE_SIZE;
   const page = Number(c.req.query("page")) || DEFAULT_CURRENT_PAGE;
-  const response = await AddressService.list(idContact, page, size);
+  const request: ListAddressRequest = { contact_id: idContact, size, page };
+  const response = await AddressService.list(request);
 
   return c.json({
     data: response.data,

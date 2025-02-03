@@ -103,7 +103,8 @@ describe("GET /api/contacts/{idContact}/addresses/{idAddress}", async function (
   });
 
   it("Should be able to get address by its id", async function () {
-    const contacts = await ContactTest.create();
+    await ContactTest.create();
+    const contacts = await ContactTest.get();
     await AddressTest.create(contacts[0].id);
     const addresses = await AddressTest.get();
     const response = await app.request(
@@ -434,7 +435,7 @@ describe("GET /api/contacts/{idContact}/addresses", async function () {
     const contacts = await ContactTest.get();
     await AddressTest.create(contacts[0].id);
     const response = await app.request(
-      `/api/contacts/${contacts[0].id}/addresses?size=5&page=500`,
+      `/api/contacts/${contacts[0].id}/addresses?size=400&page=500`,
       { method: "get", headers: { Authorization: "test" } }
     );
 

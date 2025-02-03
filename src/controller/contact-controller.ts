@@ -4,10 +4,10 @@ import { User } from "@prisma/client";
 import { ContactService } from "../service/contact-service";
 import {
   CreateContactRequest,
+  SearchContactRequest,
   UpdateContactRequest,
 } from "../model/contact-model";
 import { authMiddleware } from "../middleware/auth-middleware";
-import { logger } from "../settings/logging";
 import { DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE } from "../settings/constant";
 
 export const contactController = new Hono<{
@@ -39,8 +39,16 @@ contactController.get("/:idContact", async (c) => {
 contactController.put("/:idContact", async (c) => {
   const user = c.get("user") as User;
   const idContact = Number(c.req.param("idContact"));
-  const request = (await c.req.json()) as UpdateContactRequest;
-  const response = await ContactService.update(user, request, idContact);
+  const request = await c.req.json();
+  let data: UpdateContactRequest = {
+    id: idContact,
+    username: user.username,
+    first_name: request.first_name,
+    last_name: request.last_name,
+    email: request.email,
+    phone: request.phone,
+  };
+  const response = await ContactService.update(data);
 
   return c.json({
     data: response,
@@ -50,7 +58,10 @@ contactController.put("/:idContact", async (c) => {
 contactController.delete("/:idContact", async (c) => {
   const user = c.get("user") as User;
   const idContact = Number(c.req.param("idContact"));
-  const response = await ContactService.delete(user, idContact);
+  const response = await ContactService.delete({
+    id: idContact,
+    username: user.username,
+  });
 
   return c.json({
     data: response,
@@ -64,16 +75,13 @@ contactController.get("/", async (c) => {
   const phone = c.req.query("phone") || "";
   const size = Number(c.req.query("size")) || DEFAULT_PAGE_SIZE;
   const page = Number(c.req.query("page")) || DEFAULT_CURRENT_PAGE;
+  let data: SearchContactRequest = { size, page };
 
-  const response = await ContactService.search(user, {
-    name: decodeURIComponent(name),
-    email: decodeURIComponent(email),
-    phone: decodeURIComponent(phone),
-    size: size,
-    page: page,
-  });
+  if (name) data = { ...data, name: decodeURIComponent(name) };
+  if (email) data = { ...data, email: decodeURIComponent(email) };
+  if (phone) data = { ...data, phone: decodeURIComponent(phone) };
 
-  logger.debug(decodeURIComponent(phone));
+  const response = await ContactService.search(user, data);
 
   return c.json({
     data: response.data,
