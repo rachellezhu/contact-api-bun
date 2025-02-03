@@ -1,6 +1,7 @@
 import { Contact } from "@prisma/client";
 
 export type CreateContactRequest = {
+  username: string;
   first_name: string;
   last_name?: string;
   email?: string;
@@ -13,6 +14,11 @@ export type ContactResponse = {
   last_name?: string | null;
   email?: string | null;
   phone?: string | null;
+};
+
+export type GetContactRequest = {
+  id: number;
+  username: string;
 };
 
 export type UpdateContactRequest = {
@@ -30,6 +36,7 @@ export type DeleteContactRequest = {
 };
 
 export type SearchContactRequest = {
+  username: string;
   name?: string;
   email?: string;
   phone?: string;

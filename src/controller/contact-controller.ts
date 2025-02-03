@@ -4,6 +4,7 @@ import { User } from "@prisma/client";
 import { ContactService } from "../service/contact-service";
 import {
   CreateContactRequest,
+  GetContactRequest,
   SearchContactRequest,
   UpdateContactRequest,
 } from "../model/contact-model";
@@ -18,8 +19,9 @@ contactController.use(authMiddleware);
 
 contactController.post("/", async (c) => {
   const user = c.get("user") as User;
-  const request = (await c.req.json()) as CreateContactRequest;
-  const response = await ContactService.create(user, request);
+  const data = await c.req.json();
+  const request: CreateContactRequest = { ...data, username: user.username };
+  const response = await ContactService.create(request);
 
   return c.json({
     data: response,
@@ -29,7 +31,8 @@ contactController.post("/", async (c) => {
 contactController.get("/:idContact", async (c) => {
   const user = c.get("user") as User;
   const idContact = Number(c.req.param("idContact"));
-  const response = await ContactService.get(user, idContact);
+  const request: GetContactRequest = { id: idContact, username: user.username };
+  const response = await ContactService.get(request);
 
   return c.json({
     data: response,
@@ -39,16 +42,16 @@ contactController.get("/:idContact", async (c) => {
 contactController.put("/:idContact", async (c) => {
   const user = c.get("user") as User;
   const idContact = Number(c.req.param("idContact"));
-  const request = await c.req.json();
-  let data: UpdateContactRequest = {
+  const data = await c.req.json();
+  let request: UpdateContactRequest = {
     id: idContact,
     username: user.username,
-    first_name: request.first_name,
-    last_name: request.last_name,
-    email: request.email,
-    phone: request.phone,
+    first_name: data.first_name,
+    last_name: data.last_name,
+    email: data.email,
+    phone: data.phone,
   };
-  const response = await ContactService.update(data);
+  const response = await ContactService.update(request);
 
   return c.json({
     data: response,
@@ -75,13 +78,13 @@ contactController.get("/", async (c) => {
   const phone = c.req.query("phone") || "";
   const size = Number(c.req.query("size")) || DEFAULT_PAGE_SIZE;
   const page = Number(c.req.query("page")) || DEFAULT_CURRENT_PAGE;
-  let data: SearchContactRequest = { size, page };
+  let request: SearchContactRequest = { username: user.username, size, page };
 
-  if (name) data = { ...data, name: decodeURIComponent(name) };
-  if (email) data = { ...data, email: decodeURIComponent(email) };
-  if (phone) data = { ...data, phone: decodeURIComponent(phone) };
+  if (name) request = { ...request, name: decodeURIComponent(name) };
+  if (email) request = { ...request, email: decodeURIComponent(email) };
+  if (phone) request = { ...request, phone: decodeURIComponent(phone) };
 
-  const response = await ContactService.search(user, data);
+  const response = await ContactService.search(request);
 
   return c.json({
     data: response.data,

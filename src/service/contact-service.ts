@@ -3,6 +3,7 @@ import {
   ContactResponse,
   CreateContactRequest,
   DeleteContactRequest,
+  GetContactRequest,
   SearchContactRequest,
   toContactResponse,
   UpdateContactRequest,
@@ -12,19 +13,11 @@ import { prismaClient } from "../settings/database";
 import { HTTPException } from "hono/http-exception";
 
 export class ContactService {
-  static async create(
-    user: User,
-    request: CreateContactRequest
-  ): Promise<ContactResponse> {
+  static async create(request: CreateContactRequest): Promise<ContactResponse> {
     request = ContactValidation.CREATE.parse(request);
 
-    const data = {
-      ...request,
-      username: user.username,
-    };
-
     const contact = await prismaClient.contact.create({
-      data,
+      data: request,
     });
 
     if (!contact)
@@ -35,12 +28,11 @@ export class ContactService {
     return toContactResponse(contact);
   }
 
-  static async get(user: User, idContact: number): Promise<ContactResponse> {
+  static async get(request: GetContactRequest): Promise<ContactResponse> {
+    request = ContactValidation.GET.parse(request);
+
     const contact = await prismaClient.contact.findFirst({
-      where: {
-        username: user.username,
-        id: idContact,
-      },
+      where: request,
     });
 
     if (!contact) throw new HTTPException(403, { message: "unauthorized" });
@@ -85,48 +77,42 @@ export class ContactService {
     return true;
   }
 
-  static async search(
-    user: User,
-    queryParams: SearchContactRequest
-  ): Promise<{
+  static async search(request: SearchContactRequest): Promise<{
     data: ContactResponse[];
     page: { current_page: number; total_page: number; size: number };
   }> {
-    let query: Prisma.ContactFindManyArgs["where"] = {};
+    request = ContactValidation.SEARCH.parse(request);
+    let query: Prisma.ContactFindManyArgs["where"] = {
+      username: request.username,
+    };
 
-    queryParams = ContactValidation.SEARCH.parse(queryParams);
-
-    // if (!queryParams.size) queryParams.size = 10;
-    // if (!queryParams.page) queryParams.page = 1;
-
-    if (queryParams.name)
+    if (request.name)
       query = {
         ...query,
         OR: [
-          { first_name: { contains: queryParams.name } },
-          { last_name: { contains: queryParams.name } },
+          { first_name: { contains: request.name } },
+          { last_name: { contains: request.name } },
         ],
       };
 
-    if (queryParams.email)
-      query = { ...query, email: { contains: queryParams.email } };
+    if (request.email) query = { ...query, email: { contains: request.email } };
 
-    if (queryParams.phone)
-      query = queryParams.phone.includes(" ")
+    if (request.phone)
+      query = request.phone.includes(" ")
         ? {
             ...query,
-            phone: { contains: queryParams.phone.split(" ").join("") },
+            phone: { contains: request.phone.split(" ").join("") },
           }
-        : { ...query, phone: { contains: queryParams.phone } };
+        : { ...query, phone: { contains: request.phone } };
 
     const [contacts, count] = await prismaClient.$transaction([
       prismaClient.contact.findMany({
-        skip: (queryParams.page - 1) * queryParams.size,
-        take: queryParams.size,
-        where: { username: user.username, ...query },
+        skip: (request.page - 1) * request.size,
+        take: request.size,
+        where: query,
       }),
       prismaClient.contact.count({
-        where: { username: user.username, ...query },
+        where: query,
       }),
     ]);
 
@@ -136,9 +122,9 @@ export class ContactService {
     return {
       data: contacts.map((contact) => toContactResponse(contact)),
       page: {
-        current_page: queryParams.page,
-        total_page: Math.ceil(count / queryParams.size),
-        size: queryParams.size,
+        current_page: request.page,
+        total_page: Math.ceil(count / request.size),
+        size: request.size,
       },
     };
   }

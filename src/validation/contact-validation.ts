@@ -3,6 +3,7 @@ import { PHONE_REGEX } from "../settings/constant";
 
 export class ContactValidation {
   static readonly CREATE: ZodType = z.object({
+    username: z.string().min(1).max(100),
     first_name: z.string().min(1).max(100),
     last_name: z.string().min(1).max(100).optional(),
     email: z.string().email().min(1).max(100).optional(),
@@ -17,6 +18,11 @@ export class ContactValidation {
         { message: "phone number is invalid" }
       )
       .optional(),
+  });
+
+  static readonly GET: ZodType = z.object({
+    id: z.number().min(1).positive(),
+    username: z.string().min(1).max(100),
   });
 
   static readonly UPDATE: ZodType = z.object({
@@ -44,6 +50,7 @@ export class ContactValidation {
   });
 
   static readonly SEARCH: ZodType = z.object({
+    username: z.string().min(1).max(100),
     name: z.string().min(1).max(100).optional(),
     email: z.string().min(1).max(100).optional(),
     phone: z.string().min(1).max(20).optional(),
