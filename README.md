@@ -10,8 +10,8 @@ To install dependencies:
 
 ```sh
 bun install
-bunx prisma migrate dev
 bunx prisma generate
+bunx prisma migrate dev --name --init
 ```
 
 To run:
