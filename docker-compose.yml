@@ -1,17 +1,19 @@
 services:
   backend:
     build: .
+    container_name: contact-api-bun-be
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=mysql://root:examplepassword@contact-api-bun-db-1:3306/contact_api
+      - DATABASE_URL=mysql://root:examplepassword@contact-api-bun-db:3306/contact_api
     command: bash -c "bunx prisma migrate dev --name init && ./contact-api"
     depends_on:
       - db
 
   db:
     image: mysql:lts
+    container_name: contact-api-bun-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: examplepassword
