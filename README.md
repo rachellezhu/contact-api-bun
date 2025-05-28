@@ -3,7 +3,7 @@
 To reproduce:
 
 - Create database (MySQL)
-- Copy .env.example and rename copied file into .env
+- Copy .env.example and rename the copied file into .env
 - In .env file, set `DATABASE_URL` to `mysql://DATABASE_USER:DATABASE_PASSWORD@DATABASE_HOST:PORT/YOUR_DATABASE_NAME`. eg. `DATABASE_URL=mysql://root:@localhost:3306/database_api`
 
 To install dependencies:
