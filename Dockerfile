@@ -28,11 +28,7 @@ RUN bun build --compile --minify --sourcemap ./src --outfile contact-api-bun
 
 FROM prod AS runner
 ENV NODE_ENV=production
-ARG BUILD_APP_PORT=3000 \
-    MYSQL_ROOT_PASSWORD=examplepassword \
-    MYSQL_DATABASE=contact_api \
-    MYSQL_PASSWORD=examplepassword \
-    DATABASE_URL=mysql://root:examplepassword@contact-api-bun-db:3306/contact_api
+ARG BUILD_APP_PORT=3000
 ENV APP_PORT=${BUILD_APP_PORT}
 EXPOSE ${APP_PORT}
 WORKDIR /app
