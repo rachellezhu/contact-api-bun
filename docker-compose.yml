@@ -1,26 +1,51 @@
 services:
   backend:
-    build: .
+    build:
+      context: .
+      target: development
     container_name: contact-api-bun-be
     ports:
-      - "3000:3000"
+      - 3000:3000
+    # env_file:
+    #   - .env
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=mysql://root:examplepassword@contact-api-bun-db:3306/contact_api
-    command: bash -c "bunx prisma migrate dev --name init && ./contact-api"
+      NODE_ENV: development
+      DATABASE_URL: ${DATABASE_URL}
+      # - DATABASE_URL=mysql://root:examplepassword@contact-api-bun-db:3306/contact_api
+    command: bash -c "bun install && bunx prisma generate && bunx prisma migrate dev --name init && bun dev"
+
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app
+          ignore:
+            - node_modules/
+    restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:lts
     container_name: contact-api-bun-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: examplepassword
-      MYSQL_DATABASE: contact_api
-      MYSQL_PASSWORD: examplepassword
+      # MYSQL_ROOT_PASSWORD: examplepassword
+      # MYSQL_DATABASE: contact_api
+      # MYSQL_PASSWORD: examplepassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
     volumes:
       - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db-data:
